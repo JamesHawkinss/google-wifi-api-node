@@ -5,3 +5,17 @@ See [this documentation](https://documenter.getpostman.com/view/7490211/SzzdD1pF
 
 ### Requirements
 This library requires a refresh token, which can be obtained here: [https://www.angelod.com/onhubauthtool/](https://www.angelod.com/onhubauthtool/) 
+
+### Example usage
+```js
+const GoogleWifiApi = require('./index');
+const googleWifiApi = new GoogleWifiApi('YOUR REFRESH TOKEN HERE');
+
+(async () => {
+    await googleWifiApi.init();
+    
+    const groups = await googleWifiApi.getGroups();
+    const devices = await googleWifiApi.getGroupDevices(groups.groups[0].id)
+    console.log(devices);
+})();
+```
