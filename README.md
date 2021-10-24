@@ -1,6 +1,8 @@
 # google-wifi-api-node
 A Node.js wrapper for the Google Wi-Fi API
 
+```npm i google-wifi-api-node```
+
 See [this documentation](https://documenter.getpostman.com/view/7490211/SzzdD1pF#intro) for in-depth information about the API in use.
 
 ### Requirements
