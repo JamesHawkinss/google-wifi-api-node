@@ -1,6 +1,6 @@
 {
   "name": "google-wifi-api-node",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "google-wifi-api-node",
   "main": "index.js",
   "scripts": {

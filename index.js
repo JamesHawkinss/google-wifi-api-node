@@ -26,7 +26,14 @@ class GoogleWifiApi {
             if (e.message === 'Response code 401 (Unauthorized)') {
                 // attempt to overwrite the original auth header
                 await this.init();
-                return await this.__request(url, { method, headers: { "Authorization": `Bearer ${this.apiKey}` }, form });
+                return await this.__request(
+                    url,
+                    {
+                        method: options.method ? options.method : 'get',
+                        headers: { "Authorization": `Bearer ${this.apiKey}` },
+                        form
+                    }
+                );
             }
         }
     }
@@ -268,7 +275,7 @@ class GoogleWifiApi {
             `${this.baseUrl}/accesspoints/${clientApId}/meshSpeedTest`,
             { method: 'post' }
         );
-        
+
         return body;
     }
 
@@ -277,7 +284,7 @@ class GoogleWifiApi {
             `${this.baseUrl}/accesspoints/${apId}/wifiblasterSpeedTest`,
             { method: 'post' }
         );
-        
+
         return body;
     }
 
@@ -340,7 +347,7 @@ class GoogleWifiApi {
             `${this.baseUrl}/groups/${groupId}/insightCards/${cardId}`,
             { method: 'delete' }
         );
-        
+
         return body;
     }
 }
