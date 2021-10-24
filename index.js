@@ -146,7 +146,170 @@ class GoogleWifiApi {
         return body;
     }
 
-    async modifyGroupDeviceGroup(groupId, setId) {}
+    async modifyGroupDeviceGroup(groupId, deviceGroupId, group) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/stationSets/${deviceGroupId}`,
+            {
+                method: 'post',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: group
+            }
+        );
+
+        return body;
+    }
+
+    async createGroupDeviceGroup(groupId, group) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/stationSets`,
+            {
+                method: 'post',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: group
+            }
+        );
+
+        return body;
+    }
+
+    async deleteGroupDeviceGroup(groupId, deviceGroupId) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/stationSets/${deviceGroupId}`,
+            {
+                method: 'delete',
+                headers: { "Authorization": `Bearer ${this.apiKey}` }
+            }
+        );
+
+        return body;
+    }
+
+    async pauseGroupDeviceGroups(groupId, paused = true, deviceGroupIds = [], expiryTimestamp = undefined) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/stationBlocking`,
+            {
+                method: 'put',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: {
+                    blocked: paused,
+                    expiryTimestamp,
+                    stationSetId: deviceGroupIds
+                }
+            }
+        );
+
+        return body;
+    }
+
+    async pauseGroupDevices(groupId, paused = true, deviceIds = [], expiryTimestamp = undefined) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/stationBlocking`,
+            {
+                method: 'put',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: {
+                    blocked: paused,
+                    expiryTimestamp,
+                    stationId: deviceIds
+                }
+            }
+        );
+
+        return body;
+    }
+
+    async prioritizeGroupDevice(groupId, deviceId, prioritizationEndTime = undefined) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/prioritizedStation`,
+            {
+                method: 'put',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: {
+                    stationId: deviceId,
+                    prioritizationEndTime
+                }
+            }
+        );
+
+        return body;
+    }
+
+    // might not work
+    async unprioritizeGroupDevice(groupId, deviceId) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/prioritizedStation`,
+            {
+                method: 'delete',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: {
+                    stationId: deviceId
+                }
+            }
+        );
+
+        return body;
+    }
+
+    async rebootEntireSystem(groupId) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/reboot`,
+            {
+                method: 'post',
+                headers: { "Authorization": `Bearer ${this.apiKey}` }
+            }
+        );
+
+        return body;
+    }
+
+    async getGroupPasswords(groupId) {
+        const { body } = await this._request(
+            `${this.baseUrl}/groups/${groupId}/psks`,
+            {
+                method: 'post',
+                headers: { "Authorization": `Bearer ${this.apiKey}` }
+            }
+        );
+
+        return body;
+    }
+
+    async getDataSharingPreferences() {
+        const { body } = await this._request(
+            `${this.baseUrl}/userPreferences`,
+            {
+                method: 'get',
+                headers: { "Authorization": `Bearer ${this.apiKey}` }
+            }
+        );
+
+        return body;
+    }
+
+    async setDataSharingPreferences(data) {
+        const { body } = await this._request(
+            `${this.baseUrl}/userPreferences`,
+            {
+                method: 'put',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: data
+            }
+        );
+
+        return body;
+    }
+
+    async operations(operationId) {
+        const response = await this._request(
+            `${this.baseUrl}/operations/${operationId}`,
+            {
+                method: 'get',
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+            }
+        );
+
+        return response;
+    }
 }
 
 module.exports = GoogleWifiApi;
