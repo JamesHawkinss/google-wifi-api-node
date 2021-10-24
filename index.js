@@ -3,7 +3,7 @@ const got = require('got').default;
 class GoogleWifiApi {
     constructor(refreshToken) {
         this.refreshToken = refreshToken;
-        this.baseUrl = 'https://googlehomefoyer-pa.googleapis.com/v2';
+        this.baseUrl = 'https://accesspoints.googleapis.com/v2';
     }
 
     async init() {
@@ -267,7 +267,8 @@ class GoogleWifiApi {
             `${this.baseUrl}/groups/${groupId}/psks`,
             {
                 method: 'post',
-                headers: { "Authorization": `Bearer ${this.apiKey}` }
+                headers: { "Authorization": `Bearer ${this.apiKey}` },
+                json: {}
             }
         );
 
@@ -301,7 +302,7 @@ class GoogleWifiApi {
 
     async operations(operationId) {
         const response = await this._request(
-            `${this.baseUrl}/operations/${operationId}`,
+            `${this.baseUrl}/operations/${encodeURIComponent(operationId)}`,
             {
                 method: 'get',
                 headers: { "Authorization": `Bearer ${this.apiKey}` },
