@@ -1,0 +1,23 @@
+{
+  "name": "google-wifi-api-node",
+  "version": "1.0.0",
+  "description": "google-wifi-api-node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesHawkinss/google-wifi-api-node.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JamesHawkinss/google-wifi-api-node/issues"
+  },
+  "homepage": "https://github.com/JamesHawkinss/google-wifi-api-node#readme",
+  "dependencies": {
+    "got": "^11.8.2"
+  }
+}
