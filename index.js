@@ -1,4 +1,4 @@
-const got = require('got').default;
+const axios = require('axios');
 
 class GoogleWifiApi {
     constructor(refreshToken) {
@@ -16,30 +16,23 @@ class GoogleWifiApi {
 
     async _request(url, options = {}) {
         try {
-            return await got(url, {
+            if (!this.apiKey) await this.init();
+
+            return await axios({
+                url,
                 ...options,
                 headers: { "Authorization": `Bearer ${this.apiKey}` },
                 method: options.method ? options.method : 'get',
                 responseType: 'json'
             });
         } catch (e) {
-            if (e.message === 'Response code 401 (Unauthorized)') {
-                // attempt to overwrite the original auth header
-                await this.init();
-                return await this.__request(
-                    url,
-                    {
-                        method: options.method ? options.method : 'get',
-                        headers: { "Authorization": `Bearer ${this.apiKey}` },
-                        form
-                    }
-                );
-            }
+            throw e;
         }
     }
 
     async __request(url, options) {
-        return await got(url, {
+        return await axios({
+            url,
             ...options,
             responseType: 'json'
         });
@@ -47,112 +40,113 @@ class GoogleWifiApi {
 
     async _getApiKey(refreshToken) {
         try {
-            const { body } = await this.__request(
+            const params = new URLSearchParams();
+            params.append('app_id', 'com.google.OnHub');
+            params.append('client_id', '586698244315-vc96jg3mn4nap78iir799fc2ll3rk18s.apps.googleusercontent.com');
+            params.append('hl', 'en-US');
+            params.append('lib_ver', '3.3',);
+            params.append('response_type', 'token',);
+            params.append('scope', 'https://www.googleapis.com/auth/accesspoints https://www.googleapis.com/auth/clouddevices');
+
+            const { data } = await this.__request(
                 'https://oauthaccountmanager.googleapis.com/v1/issuetoken',
                 {
                     method: 'post',
                     headers: { "Authorization": `Bearer ${refreshToken}` },
-                    form: {
-                        'app_id': 'com.google.OnHub',
-                        'client_id': '586698244315-vc96jg3mn4nap78iir799fc2ll3rk18s.apps.googleusercontent.com',
-                        'hl': 'en-US',
-                        'lib_ver': '3.3',
-                        'response_type': 'token',
-                        'scope': 'https://www.googleapis.com/auth/accesspoints https://www.googleapis.com/auth/clouddevices'
-                    }
+                    params
                 }
             );
 
-            return body.token;
+            return data.token;
         } catch (e) {
             throw e;
         }
     }
 
     async getGroups() {
-        const { body } = await this._request(`${this.baseUrl}/groups`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups`);
+        return data;
     }
 
     async getGroupStatus(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/status`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/status`);
+        return data;
     }
 
     async getGroupDevices(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/stations`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/stations`);
+        return data;
     }
 
     async setAccessPointLightBrightness(apId, automatic = false, intensity = 100) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${apId}/lighting`,
-            { method: 'put', json: { automatic, intensity } }
+            { method: 'put', data: { automatic, intensity } }
         );
 
-        return body;
+        return data;
     }
 
     async rebootAccessPoint(apId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${apId}/reboot`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async deleteAccessPoint(apId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${apId}`,
             { method: 'delete' }
         );
 
-        return body;
+        return data;
     }
 
     async setStadiaOptimization(groupId, enabled = true) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/updateStadiaPrioritization`,
-            { method: 'put', json: { enabled } }
+            { method: 'put', data: { enabled } }
         );
 
-        return body;
+        return data;
     }
 
     async modifyGroupDeviceGroup(groupId, stationSetId, group) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/stationSets/${stationSetId}`,
-            { method: 'post', json: group }
+            { method: 'post', data: group }
         );
 
-        return body;
+        return data;
     }
 
     async createGroupDeviceGroup(groupId, group) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/stationSets`,
-            { method: 'post', json: group }
+            { method: 'post', data: group }
         );
 
-        return body;
+        return data;
     }
 
     async deleteGroupDeviceGroup(groupId, stationSetId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/stationSets/${stationSetId}`,
             { method: 'delete' }
         );
 
-        return body;
+        return data;
     }
 
     async pauseGroupDeviceGroups(groupId, paused = true, stationSetIds = [], expiryTimestamp = undefined) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/stationBlocking`,
             {
                 method: 'put',
-                json: {
+                data: {
                     blocked: paused,
                     expiryTimestamp,
                     stationSetId: stationSetIds
@@ -160,15 +154,15 @@ class GoogleWifiApi {
             }
         );
 
-        return body;
+        return data;
     }
 
     async pauseGroupDevices(groupId, paused = true, deviceIds = [], expiryTimestamp = undefined) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/stationBlocking`,
             {
                 method: 'put',
-                json: {
+                data: {
                     blocked: paused,
                     expiryTimestamp,
                     stationId: deviceIds
@@ -176,179 +170,179 @@ class GoogleWifiApi {
             }
         );
 
-        return body;
+        return data;
     }
 
     async prioritizeGroupDevice(groupId, deviceId, prioritizationEndTime = undefined) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/prioritizedStation`,
             {
                 method: 'put',
-                json: {
+                data: {
                     stationId: deviceId,
                     prioritizationEndTime
                 }
             }
         );
 
-        return body;
+        return data;
     }
 
     // might not work
     async unprioritizeGroupDevice(groupId, deviceId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/prioritizedStation`,
-            { method: 'delete', json: { stationId: deviceId } }
+            { method: 'delete', data: { stationId: deviceId } }
         );
 
-        return body;
+        return data;
     }
 
     async rebootEntireSystem(groupId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/reboot`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async getGroupPasswords(groupId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/psks`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async getDataSharingPreferences() {
-        const { body } = await this._request(`${this.baseUrl}/userPreferences`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/userPreferences`);
+        return data;
     }
 
-    async setDataSharingPreferences(data) {
-        const { body } = await this._request(
+    async setDataSharingPreferences(object) {
+        const { data } = await this._request(
             `${this.baseUrl}/userPreferences`,
-            { method: 'put', json: data }
+            { method: 'put', data: object }
         );
 
-        return body;
+        return data;
     }
 
     async operations(operationId) {
-        const { body } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}`);
+        return data;
     }
 
     async operationsPsks(operationId) {
-        const { body } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}/psks`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}/psks`);
+        return data;
     }
 
     async operationsMacAddresses(operationId) {
-        const { body } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}/macAddresses`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/operations/${encodeURIComponent(operationId)}/macAddresses`);
+        return data;
     }
 
     async oobeflow() {
-        const { body } = await this._request(`${this.baseUrl}/oobeflow`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/oobeflow`);
+        return data;
     }
 
     async getAccessPointHardwareBundleSetupInfo(apId) {
-        const { body } = await this._request(`${this.baseUrl}/accesspoints/${apId}/hardwareBundleSetupInfo`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/accesspoints/${apId}/hardwareBundleSetupInfo`);
+        return data;
     }
 
     async requestAccessPointLocalSpeedTest(apId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${apId}/localSpeedTest`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async requestAccessPointMeshSpeedTest(clientApId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${clientApId}/meshSpeedTest`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async requestAccessPointWifiblasterSpeedTest(apId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/accesspoints/${apId}/wifiblasterSpeedTest`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async getGroupBackhaulOfChildNodes(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/backhaulOfChildNodes`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/backhaulOfChildNodes`);
+        return data;
     }
 
     // async getGroupHistoricalUsage(groupId) {
-    //     const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/historicalUsage`);
-    //     return body;
+    //     const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/historicalUsage`);
+    //     return data;
     // }
 
     async getGroupMeshConfiguration(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/meshConfiguration`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/meshConfiguration`);
+        return data;
     }
 
     async getGroupMeshSpeedTestResults(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/meshSpeedTestResults`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/meshSpeedTestResults`);
+        return data;
     }
 
     async getGroupRealtimeMetrics(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/realtimeMetrics`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/realtimeMetrics`);
+        return data;
     }
 
     async getGroupSpeedTestResults(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/speedTestResults`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/speedTestResults`);
+        return data;
     }
 
     async getGroupWifiblasterSpeedTestResults(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/wifiblasterSpeedTestResults`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/wifiblasterSpeedTestResults`);
+        return data;
     }
 
     async getGroupInsightCards(groupId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/insightCards`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/insightCards`);
+        return data;
     }
 
     async getGroupInsightCard(groupId, cardId) {
-        const { body } = await this._request(`${this.baseUrl}/groups/${groupId}/insightCards/${cardId}`);
-        return body;
+        const { data } = await this._request(`${this.baseUrl}/groups/${groupId}/insightCards/${cardId}`);
+        return data;
     }
 
     async doGroupInsightCardAction(groupId, cardId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/insightCards/${cardId}/action`,
             { method: 'post' }
         );
 
-        return body;
+        return data;
     }
 
     async deleteGroupInsightCard(groupId, cardId) {
-        const { body } = await this._request(
+        const { data } = await this._request(
             `${this.baseUrl}/groups/${groupId}/insightCards/${cardId}`,
             { method: 'delete' }
         );
 
-        return body;
+        return data;
     }
 }
 

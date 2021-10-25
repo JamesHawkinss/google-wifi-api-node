@@ -1,6 +1,6 @@
 {
   "name": "google-wifi-api-node",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "google-wifi-api-node",
   "main": "index.js",
   "scripts": {
@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/JamesHawkinss/google-wifi-api-node#readme",
   "dependencies": {
-    "got": "^11.8.2"
+    "axios": "^0.23.0"
   }
 }
